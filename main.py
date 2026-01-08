@@ -10,6 +10,8 @@ from detectors.network_detector import NetworkDetector
 from detectors.connection_detector import ConnectionDetector
 from detectors.certificate_detector import CertificateDetector
 from utils.reporter import Reporter
+from utils.monitor_reporter import MonitorReporter
+from utils.monitoring_service import MonitoringService
 from utils.i18n import translator
 
 
@@ -39,18 +41,26 @@ def main():
         help=translator.t('cli.help_lang')
     )
 
+    parser.add_argument(
+        '--monitor',
+        action='store_true',
+        help=translator.t('cli.help_monitor')
+    )
+
+    parser.add_argument(
+        '--interval',
+        type=int,
+        default=30,
+        metavar='SECONDS',
+        help=translator.t('cli.help_interval')
+    )
+
     args = parser.parse_args()
 
     # Update language based on user selection
     translator.set_language(args.lang)
 
-    print(translator.t('progress.starting'))
-    print(translator.t('progress.please_wait'))
-
-    # Initialize reporter
-    reporter = Reporter(translator)
-
-    # Run all detectors
+    # Prepare detector list
     detectors = [
         (translator.t('progress.checking_proxy'), ProxyDetector(translator)),
         (translator.t('progress.scanning_processes'), ProcessDetector(translator)),
@@ -58,40 +68,66 @@ def main():
         (translator.t('progress.examining_connections'), ConnectionDetector(translator)),
     ]
 
-    # Add certificate detector if not in quick mode
-    if not args.quick:
+    # Check if monitoring mode is enabled
+    if args.monitor:
+        # In monitoring mode, always include certificate detector
+        # (frequency controlled by MonitoringService)
         detectors.append((translator.t('progress.testing_certificates'), CertificateDetector(translator)))
+
+        # Use MonitorReporter for monitoring mode
+        reporter = MonitorReporter(translator)
+
+        # Create and start monitoring service
+        service = MonitoringService(
+            translator=translator,
+            detectors=detectors,
+            reporter=reporter,
+            interval=args.interval
+        )
+
+        service.start()
     else:
-        print(translator.t('progress.skipping_certificates'))
+        # One-time detection mode
+        # Add certificate detector if not in quick mode
+        if not args.quick:
+            detectors.append((translator.t('progress.testing_certificates'), CertificateDetector(translator)))
+        else:
+            print(translator.t('progress.skipping_certificates'))
 
-    # Run each detector
-    for message, detector in detectors:
-        print(message)
-        try:
-            result = detector.detect()
-            reporter.add_result(result)
-        except Exception as e:
-            print(translator.t('messages.detector_error', detector=detector.__class__.__name__, error=str(e)))
-            reporter.add_result({
-                "name": detector.__class__.__name__,
-                "risk_level": "LOW",
-                "findings": [{
-                    "type": "Error",
-                    "detail": translator.t('templates.failed_to_run', error=str(e)),
-                    "severity": "INFO"
-                }]
-            })
+        # Use standard Reporter
+        reporter = Reporter(translator)
 
-    # Print report
-    reporter.print_report()
+        print(translator.t('progress.starting'))
+        print(translator.t('progress.please_wait'))
 
-    # Export to JSON if requested
-    if args.json:
-        reporter.export_json(args.json)
+        # Run each detector
+        for message, detector in detectors:
+            print(message)
+            try:
+                result = detector.detect()
+                reporter.add_result(result)
+            except Exception as e:
+                print(translator.t('messages.detector_error', detector=detector.__class__.__name__, error=str(e)))
+                reporter.add_result({
+                    "name": detector.__class__.__name__,
+                    "risk_level": "LOW",
+                    "findings": [{
+                        "type": "Error",
+                        "detail": translator.t('templates.failed_to_run', error=str(e)),
+                        "severity": "INFO"
+                    }]
+                })
 
-    print("\n" + translator.t('messages.note'))
-    print(translator.t('messages.note2'))
-    print(translator.t('messages.note3'))
+        # Print report
+        reporter.print_report()
+
+        # Export to JSON if requested
+        if args.json:
+            reporter.export_json(args.json)
+
+        print("\n" + translator.t('messages.note'))
+        print(translator.t('messages.note2'))
+        print(translator.t('messages.note3'))
 
 
 if __name__ == "__main__":

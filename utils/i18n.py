@@ -76,10 +76,13 @@ TRANSLATIONS = {
   python main.py                     # 运行所有检查
   python main.py --json report.json  # 导出结果到JSON
   python main.py --quick             # 跳过缓慢的检查
-  python main.py --lang en           # 使用英文输出''',
+  python main.py --lang en           # 使用英文输出
+  python main.py --monitor           # 启用持续监控模式''',
             'help_json': '将结果导出到JSON文件',
             'help_quick': '跳过缓慢的检查(证书验证)',
             'help_lang': '输出语言 (zh=中文, en=英文)',
+            'help_monitor': '启用持续监控模式',
+            'help_interval': '监控检测间隔(秒，默认30秒)',
         },
 
         # Progress Messages
@@ -179,6 +182,23 @@ TRANSLATIONS = {
             'fatal_error': '\n致命错误: {error}',
             'detector_error': '运行 {detector} 时出错: {error}',
         },
+
+        # Monitoring Mode
+        'monitor': {
+            'title': '持续监控模式',
+            'started': '启动时间',
+            'interval': '检测间隔',
+            'seconds': '秒',
+            'stop_hint': '停止监控',
+            'running_initial_scan': '正在执行初始扫描',
+            'cycle_complete': '周期 #{cycle} 完成',
+            'no_changes': '未发现变化',
+            'changes_detected': '检测到系统状态变化',
+            'new_activity_detected': '发现新的监控活动:',
+            'resolved_activity': '已解决的监控活动:',
+            'risk_changed': '风险级别变化',
+            'stopping': '正在停止监控...',
+        },
     },
 
     'en': {
@@ -189,10 +209,13 @@ TRANSLATIONS = {
   python main.py                     # Run all checks
   python main.py --json report.json  # Export results to JSON
   python main.py --quick             # Skip slow checks
-  python main.py --lang zh           # Use Chinese output''',
+  python main.py --lang zh           # Use Chinese output
+  python main.py --monitor           # Enable continuous monitoring''',
             'help_json': 'Export results to JSON file',
             'help_quick': 'Skip slow checks (certificate verification)',
             'help_lang': 'Output language (zh=Chinese, en=English)',
+            'help_monitor': 'Enable continuous monitoring mode',
+            'help_interval': 'Monitoring detection interval in seconds (default: 30)',
         },
 
         # Progress Messages
@@ -291,6 +314,23 @@ TRANSLATIONS = {
             'cancelled': '\n\nOperation cancelled by user.',
             'fatal_error': '\nFatal error: {error}',
             'detector_error': 'Error running {detector}: {error}',
+        },
+
+        # Monitoring Mode
+        'monitor': {
+            'title': 'Continuous Monitoring Mode',
+            'started': 'Started',
+            'interval': 'Detection Interval',
+            'seconds': 'seconds',
+            'stop_hint': 'Stop monitoring',
+            'running_initial_scan': 'Running initial scan',
+            'cycle_complete': 'Cycle #{cycle} completed',
+            'no_changes': 'No changes detected',
+            'changes_detected': 'System state changes detected',
+            'new_activity_detected': 'New monitoring activity detected:',
+            'resolved_activity': 'Resolved monitoring activity:',
+            'risk_changed': 'Risk level changed',
+            'stopping': 'Stopping monitoring...',
         },
     },
 }
